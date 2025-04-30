@@ -1,0 +1,14 @@
+{
+  "name": "perfdrawer",
+  "version": "1.0.0",
+  "description": "drawing schematics for perf boards",
+  "default": "index.html",
+  "scripts": {
+    "test": "npm run start"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "parcel": "^2.14.4"
+  }
+}

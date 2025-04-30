@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <title>Perf Drawer</title>
+        <link rel="stylesheet" href="./styles.css"></link>
+    </head>
+    <body>
+        <div id="draw-toolbar" class="toolbar">
+            <div id="design-tool" class="tool">
+                <p>Design</p>
+            </div>
+        </div>
+        <div id="design-toolbar" class="toolbar">
+            <div shape="0" id="rectangle-tool" class="tool">
+                <p>Rectangle</p>
+            </div>
+            <div shape="1" id="circle-tool" class="tool">
+                <p>Circle</p>
+            </div>
+            <div shape="2" id="pin-tool" class="tool">
+                <p>Pin</p>
+            </div>
+            <div id="finish-tool" class="tool">
+                <p>Finish</p>
+            </div>
+            <div id="cancel-tool" class="tool">
+                <p>Cancel</p>
+            </div>
+        </div>
+
+        <p id="coords" class="info">0,0 - 100%</p>
+        <p id="shape-dims" class="info"></p>
+        <p id="shape-coords" class="info"></p>
+        
+        <canvas id="canvas"></canvas>
+        
+        <div id="draw-tray" class="tray"></div>
+        <div id="design-tray" class="tray">
+            <div><select name="color" id="color-tray-tool">
+                <option value="white">IC</option>
+                <option value="red">LED</option>
+                <option value="green">PCB</option>
+                <option value="purple">Input</option>
+                <option value="blue">Resistor</option>
+            </select></div>
+        </div>
+
+        <script src="index.js" type="module"></script>
+    </body>
+</html>

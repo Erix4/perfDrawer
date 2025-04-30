@@ -1,0 +1,29 @@
+# Design Requirements
+
+- everything is in a grid (on a perfboard)
+- clicking on a contact will start a new wire
+    - wires will automatically be the color of the color of the pin you start with
+- you can design components
+    - where the pins are
+    - what colors pins are
+        - red for vcc
+        - black for vss
+        - green for digital data
+        - orange for analogue data
+        - blue for i2c data
+    - what color components outline is
+        - black for ic
+        - red for led
+        - green for pcb
+        - purple for input
+        - blue for resistor
+    - what shape component outline is
+        - circle
+        - rectangle
+    - done in component designer
+- grid is drawn with dots
+    - dots everywhere, grid world
+    - center of screen is 0,0
+    - scrolling up and down zooms in and out
+    - clicking anywhere drags the screen around
+    - bottom left shows current coordinates and zoom

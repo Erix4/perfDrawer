@@ -1,5 +1,6 @@
 import { SHAPE_TYPE } from "./component";
 import Rectangle from "./shape";
+import Circle from "./shape";
 
 export const MOUSE_STATE = {
     DFLT_READY: 0,
@@ -139,8 +140,27 @@ export default class Input {
                 let cx = Math.floor(2 * (e.clientX - this.comm.position.x - this.comm.screenDim.w / 2) / this.comm.resolution) / 2;
                 let cy = Math.floor(2 * (e.clientY - this.comm.position.y - this.comm.screenDim.h / 2) / this.comm.resolution) / 2;
                 //
-                if (this.currentShape == SHAPE_TYPE.RECTANGLE) {
-                    this.comm.newCompFactory.shapes.push(new Rectangle({ x: cx, y: cy }, { w: 0, h: 0 }, "#ffffff"));
+                let currentColor = document.getElementById("color-tray-tool").value;
+                switch (this.currentShape) {
+                    case SHAPE_TYPE.RECTANGLE:
+                        this.comm.newCompFactory.shapes.push(
+                            new Rectangle(
+                                { x: cx, y: cy },
+                                { w: 0, h: 0 },
+                                currentColor
+                            )
+                        );
+                        break;
+                    case SHAPE_TYPE.CIRCLE:
+                        this.comm.newCompFactory.shapes.push(
+                            new Circle(
+                                { x: cx, y: cy },
+                                0,
+                                currentColor
+                            )
+                        );
+                        break;
+
                 }
                 break;
         }
@@ -177,16 +197,25 @@ export default class Input {
                 //
                 this.comm.ctx.strokeStyle = "#ffffff";
                 //
-                this.comm.ctx.beginPath();
-                this.comm.ctx.rect(e.clientX - 30, e.clientY - 20, 20, 10);
-                this.comm.ctx.stroke();
+                switch (this.currentShape){
+                    case SHAPE_TYPE.RECTANGLE:
+                        this.comm.ctx.beginPath();
+                        this.comm.ctx.rect(e.clientX - 30, e.clientY - 20, 20, 10);
+                        this.comm.ctx.stroke();
+                        break;
+                    case SHAPE_TYPE.CIRCLE:
+                        this.comm.ctx.beginPath();
+                        this.comm.ctx.arc(e.clientX - 30, e.clientY - 20, 10, 0, 2 * Math.PI);
+                        this.comm.ctx.stroke();
+                        break;
+                }
                 //
                 break;
             case MOUSE_STATE.SHAPE_DRAWING:
                 //
                 let shapes = this.comm.newCompFactory.shapes;
-                shapes[shapes.length - 1].dims.w = Math.round((e.clientX - this.lastMousePos.x) / this.comm.resolution);
-                shapes[shapes.length - 1].dims.h = Math.round((e.clientY - this.lastMousePos.y) / this.comm.resolution);
+                console.log(shapes);
+                shapes[shapes.length - 1].adjustDim(e.clientX - this.lastMousePos.x, e.clientY - this.lastMousePos.y, this.comm.resolution);
                 //
                 this.updateShapeText();
                 this.comm.redrawAll();
@@ -218,7 +247,7 @@ export default class Input {
         switch (this.mouseState) {
             case MOUSE_STATE.GRID_MOVING:
                 this.mouseState = MOUSE_STATE.DFLT_READY;
-                if(this.comm.selectedObj != null && e.clientX == this.lastMousePos.x || e.clientY == this.lastMousePos.y){
+                if (this.comm.selectedObj != null && e.clientX == this.lastMousePos.x || e.clientY == this.lastMousePos.y) {
                     this.comm.selectedObj = null;
                     this.comm.redrawAll();
                 }
@@ -227,7 +256,7 @@ export default class Input {
                 this.mouseState = MOUSE_STATE.DFLT_READY;
                 break;
             case MOUSE_STATE.SHAPE_DRAWING:
-                if(e.clientX == this.lastMousePos.x && e.clientY == this.lastMousePos.y){
+                if (e.clientX == this.lastMousePos.x && e.clientY == this.lastMousePos.y) {
                     this.comm.newCompFactory.shapes.pop();
                     this.shapeButton(-1);
                     break;
@@ -281,7 +310,6 @@ export default class Input {
             }
         }
         //
-        console.log(type);
         if (type == -1) {
             this.mouseState = MOUSE_STATE.DFLT_READY;
             this.comm.redrawAll();
@@ -290,40 +318,40 @@ export default class Input {
         }
     }
     //
-    updateShapeText(){
+    updateShapeText() {
         let dimsText = document.getElementById("shape-dims");
         let dimsCoords = document.getElementById("shape-coords");
         //
-        if(this.mouseState == MOUSE_STATE.SHAPE_DRAWING || this.mouseState == MOUSE_STATE.COMP_MOVING){
+        if (this.mouseState == MOUSE_STATE.SHAPE_DRAWING || this.mouseState == MOUSE_STATE.COMP_MOVING) {
             let shapes = this.comm.newCompFactory.shapes;
             let shapes_len = shapes.length - 1;
-            dimsText.innerText = `(${shapes[shapes_len].dims.w + 1}, ${shapes[shapes_len].dims.h + 1})`;
+            dimsText.innerText = `(${shapes[shapes_len].getDimText()})`;
             dimsCoords.innerText = `(${shapes[shapes_len].position.x + (shapes[shapes_len].dims.w / 2)}, ${shapes[shapes_len].position.y + (shapes[shapes_len].dims.h / 2)})`;
-        }else{
+        } else {
             dimsText.innerText = ``;
             dimsCoords.innerHTML = ``;
         }
     }
     //
-    setShapeColor(color){
-        if(this.comm.selectedObj != null){
+    setShapeColor(color) {
+        if (this.comm.selectedObj != null) {
             this.comm.selectedObj.color = color;
         }
         //
         this.comm.redrawAll();
     }
     //
-    handleKeyPress(e){
-        if(e.key > "0" && e.key <= "9"){
+    handleKeyPress(e) {
+        if (e.key > "0" && e.key <= "9") {
             let idx = parseInt(e.key) - 1;
-            if(idx < this.comm.compFactories.length){
-                this.comm.compFactories[idx].createComponent();1
+            if (idx < this.comm.compFactories.length) {
+                this.comm.compFactories[idx].createComponent(); 1
             }
         }
         //
-        switch(e.key){
+        switch (e.key) {
             case "r":
-                if(this.comm.selectedObj != null){
+                if (this.comm.selectedObj != null) {
                     this.comm.selectedObj.rotate();
                     this.comm.redrawAll();
                 }

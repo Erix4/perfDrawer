@@ -1,12 +1,12 @@
 import Grid from "./grid.js";
 import Input, { MOUSE_STATE } from "./input.js";
 import CompFactory from "./comp-factory.js";
-import Rectangle from "./shape.js";
+import {Rectangle, Circle} from "./shape";
 import { SHAPE_TYPE } from "./component.js";
 
 // Drawing Constants
 const BKGD_COLOR = "#000000";
-const DLFT_RES = 30;
+const DLFT_RES = 50;
 
 const GAMESTATE = {
     DRAWING: 0,

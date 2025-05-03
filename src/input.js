@@ -1,6 +1,5 @@
 import { SHAPE_TYPE } from "./component";
-import Rectangle from "./shape";
-import Circle from "./shape";
+import {Rectangle, Circle, Pin} from "./shape";
 
 export const MOUSE_STATE = {
     DFLT_READY: 0,
@@ -82,7 +81,7 @@ export default class Input {
         });
         //
         //keys
-        document.addEventListener("keypress", (e) => {
+        document.addEventListener("keydown", (e) => {
             self.handleKeyPress(e);
         });
     }
@@ -92,7 +91,6 @@ export default class Input {
     }
     //
     mousedown(e) {
-        console.log(this.mouseState);
         switch (this.mouseState) {
             case MOUSE_STATE.DFLT_READY:
                 let clicking_component = -1;
@@ -137,9 +135,10 @@ export default class Input {
                 this.lastMousePos.x = e.clientX;
                 this.lastMousePos.y = e.clientY;
                 //
-                let cx = Math.floor(2 * (e.clientX - this.comm.position.x - this.comm.screenDim.w / 2) / this.comm.resolution) / 2;
-                let cy = Math.floor(2 * (e.clientY - this.comm.position.y - this.comm.screenDim.h / 2) / this.comm.resolution) / 2;
+                let cx = Math.round(2 * (e.clientX - this.comm.position.x - this.comm.screenDim.w / 2) / this.comm.resolution) / 2;
+                let cy = Math.round(2 * (e.clientY - this.comm.position.y - this.comm.screenDim.h / 2) / this.comm.resolution) / 2;
                 //
+                console.log(`${cx}, ${cy}`);
                 let currentColor = document.getElementById("color-tray-tool").value;
                 switch (this.currentShape) {
                     case SHAPE_TYPE.RECTANGLE:
@@ -162,6 +161,21 @@ export default class Input {
                         break;
 
                 }
+                break;
+            
+            case MOUSE_STATE.PIN_READY:
+                let px = Math.round((e.clientX - this.comm.position.x - this.comm.screenDim.w / 2) / this.comm.resolution);
+                let py = Math.round((e.clientY - this.comm.position.y - this.comm.screenDim.h / 2) / this.comm.resolution);
+                let pColor = document.getElementById("color-tray-tool").value;
+                //
+                this.comm.newCompFactory.shapes.push(
+                    new Pin(
+                        { x: px, y: py },
+                        pColor
+                    )
+                );
+                //
+                this.comm.redrawAll();
                 break;
         }
     }
@@ -205,16 +219,24 @@ export default class Input {
                         break;
                     case SHAPE_TYPE.CIRCLE:
                         this.comm.ctx.beginPath();
-                        this.comm.ctx.arc(e.clientX - 30, e.clientY - 20, 10, 0, 2 * Math.PI);
+                        this.comm.ctx.arc(e.clientX - 20, e.clientY - 20, 10, 0, 2 * Math.PI);
                         this.comm.ctx.stroke();
                         break;
                 }
                 //
                 break;
+            case MOUSE_STATE.PIN_READY:
+                this.comm.redrawAll();
+                //
+                this.comm.ctx.fillStyle = "#ffffff";
+                //
+                this.comm.ctx.beginPath();
+                this.comm.ctx.arc(e.clientX - 20, e.clientY - 20, 6, 0, 2 * Math.PI);
+                this.comm.ctx.fill();
+                break;
             case MOUSE_STATE.SHAPE_DRAWING:
                 //
                 let shapes = this.comm.newCompFactory.shapes;
-                console.log(shapes);
                 shapes[shapes.length - 1].adjustDim(e.clientX - this.lastMousePos.x, e.clientY - this.lastMousePos.y, this.comm.resolution);
                 //
                 this.updateShapeText();
@@ -230,11 +252,20 @@ export default class Input {
                 //
                 break;
             case MOUSE_STATE.COMP_MOVING:
-                let deltaX = Math.round(2 * (e.clientX - this.lastMousePos.x) / this.comm.resolution) / 2;
-                let deltaY = Math.round(2 * (e.clientY - this.lastMousePos.y) / this.comm.resolution) / 2;
+                let deltaX = (e.clientX - this.lastMousePos.x) / this.comm.resolution;
+                let deltaY = (e.clientY - this.lastMousePos.y) / this.comm.resolution;
                 //
-                this.comm.selectedObj.position.x = this.shapeMoveStart.x + deltaX;
-                this.comm.selectedObj.position.y = this.shapeMoveStart.y + deltaY;
+                if(this.comm.selectedObj.type == SHAPE_TYPE.PIN){
+                    this.comm.selectedObj.position.x = this.shapeMoveStart.x + Math.round(deltaX);
+                    this.comm.selectedObj.position.y = this.shapeMoveStart.y + Math.round(deltaY);    
+                }else{
+                    let roundX = Math.round(2 * deltaX) / 2;
+                    let roundY = Math.round(2 * deltaY) / 2;
+                    //
+                    this.comm.selectedObj.position.x = this.shapeMoveStart.x + roundX;
+                    this.comm.selectedObj.position.y = this.shapeMoveStart.y + roundY;    
+    
+                }
                 //
                 this.updateShapeText();
                 this.comm.redrawAll();
@@ -326,7 +357,7 @@ export default class Input {
             let shapes = this.comm.newCompFactory.shapes;
             let shapes_len = shapes.length - 1;
             dimsText.innerText = `(${shapes[shapes_len].getDimText()})`;
-            dimsCoords.innerText = `(${shapes[shapes_len].position.x + (shapes[shapes_len].dims.w / 2)}, ${shapes[shapes_len].position.y + (shapes[shapes_len].dims.h / 2)})`;
+            dimsCoords.innerText = `(${shapes[shapes_len].getPosText()})`;
         } else {
             dimsText.innerText = ``;
             dimsCoords.innerHTML = ``;
@@ -354,6 +385,18 @@ export default class Input {
                 if (this.comm.selectedObj != null) {
                     this.comm.selectedObj.rotate();
                     this.comm.redrawAll();
+                }
+                break;
+            
+            case "Backspace":
+                if(this.comm.selectedObj != null){
+                    if(this.comm.gamestate == this.comm.C_GAMESTATE.DESIGNING){
+                        let idx = this.comm.newCompFactory.shapes.indexOf(this.comm.selectedObj);
+                        this.comm.newCompFactory.shapes.splice(idx, 1);
+                        //
+                        this.comm.selectedObj = null;
+                        this.comm.redrawAll();
+                    }
                 }
                 break;
         }
